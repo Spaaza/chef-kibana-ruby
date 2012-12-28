@@ -1,8 +1,8 @@
-name             "chef-kibana-ruby"
-maintainer       "YOUR_NAME"
+name             "kibana"
+maintainer       "James Brook"
 maintainer_email "YOUR_EMAIL"
-license          "All rights reserved"
-description      "Installs/Configures chef-kibana-ruby"
+license          "Apache License, Version 2.0"
+description      "Installs/Configures kibana (ruby version)"
 long_description IO.read(File.join(File.dirname(__FILE__), 'README.md'))
 version          "0.1.0"
 
