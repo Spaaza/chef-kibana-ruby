@@ -1,0 +1,17 @@
+description "Kibana"
+author "Chef"
+
+start on (filesystem and net-device-up)
+stop on runlevel [!2345]
+
+respawn
+respawn limit 5 30
+
+chdir <%= node['kibana']['install'] %>
+setuid <%= node['kibana']['user'] %>
+
+script
+  exec <%= node['kibana']['install'] %>/.rvm/bin/ruby kibana.rb
+end script
+
+emits kibana-running
