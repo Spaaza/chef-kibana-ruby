@@ -7,7 +7,7 @@ default['kibana']['pid_dir'] = "/var/run/kibana"
 default['kibana']['log_dir'] = "/var/log/kibana"
 
 default['kibana']['git']['url'] = 'git://github.com/rashidkpc/Kibana.git'
-default['kibana']['git']['reference'] = 'master'
+default['kibana']['git']['reference'] = 'HEAD'
 
 #default['kibana']['apache']['host'] = node['fqdn']
 #default['kibana']['apache']['interface'] = node['ipaddress']
