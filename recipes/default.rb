@@ -59,7 +59,7 @@ node.set['rvm']['user_installs'] = [
 ]
 
 include_recipe "rvm::user_install"
-include_recipe "rvm::vagrant"
+#include_recipe "rvm::vagrant"
 
 rvm_ruby node['kibana']['ruby_version'] do
   user node['kibana']['user']

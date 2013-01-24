@@ -11,7 +11,7 @@ chdir <%= node['kibana']['install'] %>
 setuid <%= node['kibana']['user'] %>
 
 script
-  exec <%= node['kibana']['install'] %>/.rvm/bin/ruby kibana.rb
+  exec <%= node['kibana']['home'] %>/.rvm/bin/ruby kibana.rb
 end script
 
 emits kibana-running
