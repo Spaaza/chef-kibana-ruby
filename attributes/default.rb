@@ -36,3 +36,6 @@ default['kibana']['config']['filter'] = ""
 default['kibana']['config']['smart_index'] = true
 default['kibana']['config']['smart_index_pattern'] = 'logstash-%Y.%m.%d'
 default['kibana']['config']['smart_index_limit'] = 60
+
+override['rvm']['version'] = "1.16.13"
+override['rvm']['branch'] = "none"

@@ -55,7 +55,9 @@ template "Create Kibana config" do
 end
 
 node.set['rvm']['user_installs'] = [
-  { 'user'   =>  node['kibana']['user'] }
+  { 
+    'user'         => node['kibana']['user']
+  }
 ]
 
 include_recipe "rvm::user_install"
