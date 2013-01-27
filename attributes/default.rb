@@ -13,7 +13,7 @@ default['kibana']['git']['reference'] = 'HEAD'
 #default['kibana']['apache']['interface'] = node['ipaddress']
 #default['kibana']['apache']['port'] = 80
 
-default['kibana']['ruby_version'] = "ruby-1.9.3-p125"
+default['kibana']['ruby_version'] = "1.9.3-p125"
 
 # The elastic search server(s). This may be set as an array for round robin
 # load balancing (e.g. ["elasticsearch1:9200", "elasticsearch2:9200"]).

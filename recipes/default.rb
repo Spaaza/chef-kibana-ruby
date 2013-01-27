@@ -54,32 +54,34 @@ template "Create Kibana config" do
   notifies :restart, "service[kibana]", :delayed
 end
 
-node.set['rvm']['user_installs'] = [
-  { 
-    'user'         => node['kibana']['user']
-  }
-]
-
-include_recipe "rvm::user_install"
-#include_recipe "rvm::vagrant"
-
-rvm_ruby node['kibana']['ruby_version'] do
-  user node['kibana']['user']
-end
-
-rvm_gem "bundler" do
-  user node['kibana']['user']
-end
-
 execute "kibana owner-change" do
     command "chown -Rf #{node['kibana']['user']}:#{node['kibana']['group']} #{node['kibana']['home']}"
 end
 
-rvm_shell "Run bundler install" do
-  user node['kibana']['user']
-  group node['kibana']['group']
-  cwd node['kibana']['install']
-  code 'bundle install'
+include_recipe "ruby_build"
+include_recipe "rbenv::system"
+
+rbenv_ruby node['kibana']['ruby_version'] do
+  action :install
+  root_path node['rbenv']['root_path']
+end
+
+rbenv_global node['kibana']['ruby_version'] do
+  root_path node['rbenv']['root_path']
+end
+
+rbenv_gem "bundler" do
+  rbenv_version node['kibana']['ruby_version']
+  root_path node['rbenv']['root_path']
+end
+
+rbenv_script "bundle_install" do
+  rbenv_version node['kibana']['ruby_version']
+#  user          node['kibana']['user']
+#  group         node['kibana']['group']
+  cwd           node['kibana']['install']
+  root_path     node['rbenv']['root_path']
+  code          %{bundle install}
 end
 
 if platform?  "debian", "ubuntu"
