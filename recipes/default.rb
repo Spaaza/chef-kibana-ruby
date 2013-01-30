@@ -3,8 +3,8 @@
 # Recipe:: default
 include_recipe "runit" unless node["platform_version"] == "12.04"
 
-case node['platform']
-when "debian", "ubuntu"
+case node['platform_family']
+when "debian"
   include_recipe 'apt'
   packages = %w{libcurl4-openssl-dev}
     packages.each do |pkg|
@@ -12,7 +12,7 @@ when "debian", "ubuntu"
       action :install
     end
   end
-when "redhat", "centos", "amazon", "fedora", "scientific"
+when "rhel", "fedora"
   include_recipe 'yum'
   include_recipe "yum::epel"
   packages = %w{curl-devel}
@@ -84,7 +84,8 @@ rbenv_script "bundle_install" do
   code          %{bundle install}
 end
 
-if platform?  "debian", "ubuntu"
+case node['platform_family'] 
+when "debian"
   if node["platform_version"] == "12.04"
     template "/etc/init/kibana.conf" do
       mode "0644"
@@ -98,7 +99,7 @@ if platform?  "debian", "ubuntu"
   else
     runit_service "kibana"
   end
-elsif platform? "redhat", "centos", "amazon", "fedora", "scientific"
+when "rhel", "fedora"
   template "/etc/init.d/kibana" do
     source "init.erb"
     owner "root"
