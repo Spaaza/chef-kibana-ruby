@@ -53,13 +53,6 @@ Vagrant::Config.run do |config|
 
     chef.log_level = :debug
 
-    chef.json = {
-      :mysql => {
-        :server_root_password => 'rootpass',
-        :server_debian_password => 'debpass',
-        :server_repl_password => 'replpass'
-      }
-    }
 
     chef.run_list = [
       "recipe[chef-kibana-ruby::default]"

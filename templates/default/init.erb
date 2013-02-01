@@ -1,168 +1,86 @@
-#!/usr/bin/env bash
+#!/bin/bash 
+### BEGIN INIT INFO
+# Provides:          kibana
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Make sense of a mountain of logs.
+### END INIT INFO
+
 #
-# kibana
+# chkconfig: 2345 20 80
 #
-# chkconfig:   - 57 47
-# description: kibana
-# processname: kibana
+export PID_DIR="<%= node['kibana']['pid_dir'] %>"
+KIBANA_HOME="<%= @basedir %>"
+KIBANA_BIN="kibana-daemon.rb" #short name
+KIBANA_SRV="$KIBANA_HOME/$KIBANA_BIN" #script to issue start/stop/etc commands
+PATH="<%= node['rbenv']['root_path'] %>/shims/:$PATH"
+KIBANA_USER="<%= node['kibana']['user'] %>"
+#LOGDIR="<%= node['kibana']['log_dir'] %>"
 
+function missing_bin() { 
+    echo "Failed to find kibana binary file: [$KSRV]"; 
+    echo "Check /etc/init.d/kibana file for correct settings."
+    RETVAL=1; 
+    exit 1;
+}
 
-PIDDIR="<%= node['kibana']['pid_dir'] %>"
-export PIDFILE="$PIDDIR/kibana.pid"
-export KB_HOME="<%= @basedir %>"
-KB_USER="<%= node['kibana']['user'] %>"
-LOGDIR="<%= node['kibana']['log_dir'] %>"
-KB_LOG="$LOGDIR/kibana.log"
-BIN_SCRIPT="/usr/bin/env ruby $KB_HOME/kibana.rb > $KB_LOG 2>&1 &  echo \$! > $PIDFILE"
-
-if [ -f /etc/init.d/functions ] ; then
-  . /etc/init.d/functions
+which ruby > /dev/null
+if [ $? -ne 0 ]; then 
+    echo "Ruby cannot be found. Please install ruby or put in PATH."
+    exit 1;
 fi
 
-start() {
+test -f $KIBANA_SRV || missing_bin
 
-  if [ ! -d "$PIDDIR" ] ; then
-    mkdir "$PIDDIR"
-    chown -R $KB_USER:$KB_USER $PIDDIR
-  fi
+. /etc/rc.d/init.d/functions
 
-  if [ ! -d "$LOGDIR" ] ; then
-    mkdir "$LOGDIR"
-  fi
-
-  chown -R $KB_USER:$KB_USER $LOGDIR $PIDDIR
-
-
-  if [ -f $PIDFILE ]; then
-    echo -e "\033[31;1mPID file found in $PIDFILE, already running?\033[0m"
-    ls_pid="$(cat $PIDFILE)"
-    pid_running="$( ps ax | grep 'java' | grep $ls_pid )"
-
-    if [ ! -z "$pid_running" ] ; then
-      echo -e "\033[31;1mPID $ls_pid still alive, kibana is already running. Doing nothing\033[0m"
-      return 1
-    fi
-  fi
-
-  cd $KB_HOME
-
-  echo -e "\033[1mStarting kibana...\033[0m"
-  su - $KB_USER -c "cd $KB_HOME; $BIN_SCRIPT" & > /dev/null 2>&1
-  ls_pid=$!
-  result=$?
-
-  if [ $result -ne 0 ] ; then
-    failure
-    echo -e "Kibana did not start successfully"
-    exit 1
-  else
-    success
-    echo -e "Kibana started successfully"
-  fi
-
-}
-
-
-
-function stop() {
-  echo -n -e "\033[1mStopping kibana...\033[0m"
-
-  if [ -z "$SHUTDOWN_WAIT" ]; then
-    SHUTDOWN_WAIT=5
-  fi
-
-  if [ ! -z "$PIDFILE" ]; then
-    if [ -f "$PIDFILE" ]; then
-      kill -0 `cat $PIDFILE` >/dev/null 2>&1
-      if [ $? -gt 0 ]; then
-        echo "PID file ($PIDFILE) found but no matching process was found. Nothing to do."
-        return 0
-      fi
-    else
-      echo "\$PIDFILE was set ($PIDFILE) but the specified file does not exist. Is Kibana running? Assuming it has stopped and pro\
-        ceeding."
-      return 0
-    fi
-  fi
-
-  kill `cat $PIDFILE` >/dev/null 2>&1
-
-  if [ ! -z "$PIDFILE" ]; then
-    if [ -f "$PIDFILE" ]; then
-      while [ $SHUTDOWN_WAIT -ge 0 ]; do
-        kill -0 `cat $PIDFILE` >/dev/null 2>&1
-        if [ $? -gt 0 ]; then
-          rm $PIDFILE
-          break
-        fi
-        if [ $SHUTDOWN_WAIT -gt 0 ]; then
-          sleep 1
-        fi
-        SHUTDOWN_WAIT=`expr $SHUTDOWN_WAIT - 1 `
-      done
-      # still not dead, we may need to resort to drastic measures
-      if [ -f "$PIDFILE" ]; then
-        kill -0 `cat $PIDFILE` >/dev/null 2>&1
-        if [ $? -eq 0 ]; then
-          echo "Application still alive, sleeping for 20 seconds before sending SIGKILL"
-          sleep 20
-          kill -0 `cat $PIDFILE` >/dev/null 2>&1
-          if [ $? -eq 0 ]; then
-            kill -9 `cat $PIDFILE` >/dev/null 2>&1
-            echo "Killed with extreme prejudice"
-          else
-            echo "Application stopped, no need to use SIGKILL"
-          fi
-          rm $PIDFILE
-        fi
-      fi
-    fi
-  fi
-}
-
-restart() {
-  stop
-  start
-}
-
-status() {
-  # GOT PIDFILE?
-  [ -f $PIDFILE ] && pid=$(cat $PIDFILE)
-
-  # RUNNING
-  if [[ $pid && -d "/proc/$pid" ]]; then
-    success
-    echo -e "Kibana is running with pid $pid"
-  fi
-
-  # NOT RUNNING
-  if [[ ! $pid || ! -d "/proc/$pid" ]]; then
-    echo "Kibana not running"
-  fi
-
-  # STALE PID FOUND
-  if [[ ! -d "/proc/$pid" && -f $PIDFILE ]]; then
-    echo -e "\033[1;31;40m[!] Stale PID found in $PIDFILE\033[0m"
-  fi
-}
-
+RETVAL=0
 
 case "$1" in
-  start)
-    start
-    ;;
-  stop)
-    stop
-    ;;
-  restart)
-    restart
-    ;;
-  status)
-    status $2
-    ;;
-  *)
-    echo $"Usage: $0 {start|stop|restart|status [-v]|}"
-    exit 1
+start)
+  echo -n "Starting Kibana: "
+
+  #check to see if we're already running
+  pgrep -f ${KIBANA_BIN} > /dev/null
+  RUNNING=$?
+  if [ $RUNNING -eq 0 ]; then             
+      echo "[FAILED]"
+      echo        
+      echo "Reason: kibana is already running."
+      RETVAL=1
+      exit 1;
+  fi
+  su - $KIBANA_USER -c "ruby $KIBANA_SRV $1"
+  RETVAL=$?
+;;
+
+stop)
+echo -n "Shutting down Kibana: "
+  su - $KIBANA_USER -c "ruby $KIBANA_SRV $1"
+  RETVAL=$?
+;;
+
+restart)
+  su - $KIBANA_USER -c "ruby $KIBANA_SRV $1"
+  RETVAL=$?
+;;
+
+status)
+  su - $KIBANA_USER -c "ruby $KIBANA_SRV $1"
+;;
+
+# zap not working yet
+#force-reload)
+#  su - $KIBANA_USER -c "ruby $KIBANA_SRV zap"
+#  su - $KIBANA_USER -c "ruby $KIBANA_SRV start"
+#  RETVAL=$?
+#;;
+
+*)
+  echo "Usage: $0 {start|stop|restart|status}"
+  exit 1
 esac
 
-exit $?
+exit $RETVAL

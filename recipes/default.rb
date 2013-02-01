@@ -75,10 +75,13 @@ rbenv_gem "bundler" do
   root_path node['rbenv']['root_path']
 end
 
+rbenv_gem "daemons" do
+  rbenv_version node['kibana']['ruby_version']
+  root_path node['rbenv']['root_path']
+end
+
 rbenv_script "bundle_install" do
   rbenv_version node['kibana']['ruby_version']
-#  user          node['kibana']['user']
-#  group         node['kibana']['group']
   cwd           node['kibana']['install']
   root_path     node['rbenv']['root_path']
   code          %{bundle install}

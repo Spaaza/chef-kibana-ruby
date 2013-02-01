@@ -1,4 +1,4 @@
-name             "kibana"
+name             "chef-kibana-ruby"
 maintainer       "James Brook"
 maintainer_email "YOUR_EMAIL"
 license          "Apache License, Version 2.0"
@@ -14,11 +14,10 @@ supports         "centos"
 supports         "scientific"
 supports         "amazon"
 supports         "fedora"
-
+ 
 depends "runit"
 depends "apt"
 depends "yum"
-#depends "rvm"
 depends "rbenv"
 depends "ruby_build"
 
